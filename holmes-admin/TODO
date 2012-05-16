@@ -1,0 +1,7 @@
+- finish main options
+  - insert rules
+  - edit rules (deactivate)
+  - insert datasources
+  - edit datasources (deactivate)
+- handle exceptions (e.g. http connection refused)
+- refactor rest.py

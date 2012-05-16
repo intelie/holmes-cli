@@ -1,0 +1,86 @@
+#!/usr/bin/env python 
+#-*- coding:utf-8 -*- 
+
+#TODO:
+# 1. definir corretamente o mapeamento manual de algumas propriedades  //DONE
+# 2. agrupar propriedades do mesmo fluxo (que ocorra mais de uma vez no topics.py)
+
+import topics
+import re
+import os
+import sys
+
+OUTPUT_DIR='sample/'
+
+def pre_conf():
+  
+  custom_props = dict()
+  #insert customized flow here
+  #custom_props = {'property_1': 'type_1',
+  #                'property_2': 'type_2',
+  #                'property_3': 'type_3'
+  #               }
+  return custom_props;
+
+def parse_regexps(properties, regexp, custom_props):
+ 
+  final_list = list()
+  final_list.append(("host", "STRING", "IDENTIFIER"))
+  final_list.append(("downtime", "INT", "VALUE"))
+
+  #regexp to capture everything that's surrounded by parenthesis except escaped ones
+  group_regex = re.compile(r'((?<!\\)\((?!\?).+?\))')
+  matched_groups = group_regex.findall(regexp)
+
+  if len(matched_groups) != len(properties):
+      print "Different number of properties"
+      print "Aborting..."
+      sys.exit(-1)
+
+  for i, value in enumerate(matched_groups):
+    if 'OK' in value or "WARNING" in value or "CRITICAL" in value:
+      final_list.append((properties[i], "STRING", "VALUE"))
+      continue
+    if '.+' in value or '\S+' in value or '.*' in value or '\w+' in value:
+      final_list.append((properties[i], "STRING", "VALUE"))
+      continue
+    if '[\d.]+' in value or '[0-9.]+' in value:
+      final_list.append((properties[i], "FLOAT", "VALUE"))
+      continue
+    if '\d' in value or '[0-9]' in value:
+      final_list.append((properties[i], "INT", "VALUE"))
+      continue
+  
+  final_list_props = list()
+  for i in final_list:
+    final_list_props.append(i[0])
+  props_to_be_replaced = list(set(final_list_props) & set(custom_props.keys()))
+  for r,i in enumerate(final_list):
+    for item in props_to_be_replaced:
+      if i[0] == item:
+        temp_item = list(i)
+        temp_item[1] = custom_props[item]
+        final_list[r] = temp_item
+
+  return final_list
+
+def write_file(final_list, filename):
+  if not os.path.exists(OUTPUT_DIR):
+    os.mkdir(OUTPUT_DIR)
+  file = open(OUTPUT_DIR + filename + '.py', 'w')
+  string = "PROPERTIES = %s" % final_list
+  print >> file, string
+  file.close()
+
+if __name__ == "__main__":
+  custom_props = pre_conf()
+  keys_list = topics.expressions.keys()
+  print 'The following flows have been created: \n'
+  for i in range(len(keys_list)):
+    #print i
+    first_regexp = topics.expressions[keys_list[i]][0]['regexps'][0]  
+    #print first_regexp
+    final_list = parse_regexps(first_regexp['properties'], first_regexp['regexp'], custom_props)
+    filename = topics.expressions[keys_list[i]][0]['eventtype']
+    print '\'' + filename + '\',',
+    write_file(final_list, filename)
