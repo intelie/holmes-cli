@@ -3,26 +3,39 @@
 
 #TODO:
 # 1. definir corretamente o mapeamento manual de algumas propriedades  //DONE
-# 2. agrupar propriedades do mesmo fluxo (que ocorra mais de uma vez no topics.py)
+# 2. agrupar propriedades do mesmo fluxo (que ocorra mais de uma vez no topics.py) //DONE
 
 import topics
 import re
 import os
 import sys
 
-OUTPUT_DIR='sample/'
+sys.path.append('samples/')
+
+OUTPUT_DIR='samples/'
 
 def pre_conf():
   
   custom_props = dict()
-  #insert customized flow here
+  #insert customized stream here
   #custom_props = {'property_1': 'type_1',
   #                'property_2': 'type_2',
   #                'property_3': 'type_3'
   #               }
   return custom_props;
 
-def parse_regexps(properties, regexp, custom_props):
+def group_regexps_by_eventtype(keys_list):
+
+  streams = {}
+  for key in keys_list:
+    eventtype = topics.expressions[key][0]['eventtype']
+    if eventtype not in streams.keys():
+      streams[eventtype] = []
+      streams[eventtype].append(topics.expressions[key][0]['regexps'])  	 
+  return streams
+
+
+def parse_regexps(re_props_list, custom_props):
  
   final_list = list()
   final_list.append(("host", "STRING", "IDENTIFIER"))
@@ -30,10 +43,19 @@ def parse_regexps(properties, regexp, custom_props):
 
   #regexp to capture everything that's surrounded by parenthesis except escaped ones
   group_regex = re.compile(r'((?<!\\)\((?!\?).+?\))')
-  matched_groups = group_regex.findall(regexp)
+
+  matched_groups = []
+  properties = []
+  for i in range(len(re_props_list)):
+    matched_groups.append(group_regex.findall(re_props_list[i]['regexp']))
+    properties.append(re_props_list[i]['properties'])
+
+  #make flat lists
+  properties = sum(properties, [])
+  matched_groups = sum(matched_groups, [])
 
   if len(matched_groups) != len(properties):
-      print "Different number of properties"
+      print "\nDifferent number of properties"
       print "Aborting..."
       sys.exit(-1)
 
@@ -50,6 +72,7 @@ def parse_regexps(properties, regexp, custom_props):
     if '\d' in value or '[0-9]' in value:
       final_list.append((properties[i], "INT", "VALUE"))
       continue
+    final_list.append((properties[i], "STRING", "VALUE"))
   
   final_list_props = list()
   for i in final_list:
@@ -65,22 +88,29 @@ def parse_regexps(properties, regexp, custom_props):
   return final_list
 
 def write_file(final_list, filename):
+
+  #remove duplicates
+  final_list = dict((x[0], x) for x in final_list).values()  
+
+  #write to file
   if not os.path.exists(OUTPUT_DIR):
     os.mkdir(OUTPUT_DIR)
   file = open(OUTPUT_DIR + filename + '.py', 'w')
-  string = "PROPERTIES = %s" % final_list
+  string = "PROPERTIES = [" 
   print >> file, string
+  for item in final_list:
+    print >> file, "  %s, " % str(item)
+  print >> file, "]"
   file.close()
 
 if __name__ == "__main__":
   custom_props = pre_conf()
   keys_list = topics.expressions.keys()
-  print 'The following flows have been created: \n'
-  for i in range(len(keys_list)):
-    #print i
-    first_regexp = topics.expressions[keys_list[i]][0]['regexps'][0]  
-    #print first_regexp
-    final_list = parse_regexps(first_regexp['properties'], first_regexp['regexp'], custom_props)
-    filename = topics.expressions[keys_list[i]][0]['eventtype']
+  print 'The following streams have been created: \n'
+  
+  streams = group_regexps_by_eventtype(keys_list)
+  for key in streams:
+    final_list = parse_regexps(streams[key][0], custom_props)
+    filename = key
     print '\'' + filename + '\',',
     write_file(final_list, filename)
