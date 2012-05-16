@@ -1,4 +1,7 @@
-holmes-cli
-==========
+holmes-admin
+=============
 
-holmes command line interface
+IEM administration interface
+
+- Run `./holmes-admin -h` to see usage options
+- Before running, edit the configuration file `conf/holmes_admin.py`
