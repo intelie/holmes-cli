@@ -63,7 +63,7 @@ def parse_regexps(re_props_list, custom_props):
     if 'OK' in value or "WARNING" in value or "CRITICAL" in value:
       final_list.append((properties[i], "STRING", "VALUE"))
       continue
-    if '.+' in value or '\S+' in value or '.*' in value or '\w+' in value:
+    if '.+' in value or '\S+' in value or '[\S]+' or '.*' in value or '\w+' in value:
       final_list.append((properties[i], "STRING", "VALUE"))
       continue
     if '[\d.]+' in value or '[0-9.]+' in value:
