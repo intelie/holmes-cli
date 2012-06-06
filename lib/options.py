@@ -81,7 +81,11 @@ def handle_insert_users_from_ldap_option():
     cookie = rest.login_holmes()
     for result in result_set:
         user = result[0][1]['cn'][0]
-        data = {"username":user, "name":user, "email": user + "@" + holmes_admin.EMAIL_DOMAIN, "xmpp_user":""}
+        if holmes_admin.EMAIL_DOMAIN:
+            data = {"username":user, "name":user, "email": user + "@" + holmes_admin.EMAIL_DOMAIN, "xmpp_user":""}
+        else:
+            data = {"username":user, "name":user, "email": "", "xmpp_user":""}
+	    
         #print data
         rest.insert_user(data, cookie)
 
