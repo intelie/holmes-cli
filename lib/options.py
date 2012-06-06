@@ -59,7 +59,14 @@ def handle_insert_users_from_file_option():
 
 def handle_insert_users_from_ldap_option():
     try:
-        l = ldap.open(holmes_admin.LDAP_SERVER)
+        serverName = holmes_admin.LDAP_SERVER_URI.split(':')[0]
+        serverPort = holmes_admin.LDAP_SERVER_URI.split(':')[1]
+        if not serverPort:
+            serverPort = 389
+        else:
+            serverPort = int(serverPort)
+        l = ldap.open(serverName, serverPort)
+	l.set_option(ldap.OPT_REFERRALS, 0)
         l.simple_bind(holmes_admin.LDAP_USERNAME, holmes_admin.LDAP_PASSWORD)
     except ldap.LDAPError, e:
         print e
@@ -80,11 +87,12 @@ def handle_insert_users_from_ldap_option():
        sys.exit(-1)
     cookie = rest.login_holmes()
     for result in result_set:
-        user = result[0][1]['cn'][0]
+        name = result[0][1]['name'][0]
+        username = result[0][1]['sAMAccountName'][0]
         if holmes_admin.EMAIL_DOMAIN:
-            data = {"username":user, "name":user, "email": user + "@" + holmes_admin.EMAIL_DOMAIN, "xmpp_user":""}
+            data = {"username":username, "name":name, "email": username + "@" + holmes_admin.EMAIL_DOMAIN, "xmpp_user":""}
         else:
-            data = {"username":user, "name":user, "email": "", "xmpp_user":""}
+            data = {"username":username, "name":name, "email": "", "xmpp_user":""}
 	    
         #print data
         rest.insert_user(data, cookie)
