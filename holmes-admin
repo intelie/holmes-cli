@@ -8,7 +8,7 @@ if __name__ == '__main__':
     if len(sys.argv) < 3:
         print 'Usage: ./holmes-admin [insert|remove|get] [streams|entity-types|users] <options>'
 	print 'OPTIONS:'
-	print '   [users] <from-file|from-ldap>'
+	print '   [users] <from_file|from_ldap>'
 	sys.exit(0)
     elif len(sys.argv) == 3:
 	do_evaluate_option = options.options[sys.argv[1]][sys.argv[2]]
