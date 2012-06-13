@@ -6,9 +6,9 @@ HOLMES_USERNAME="admin"
 HOLMES_PASSWORD="admin"
 
 # LDAP access configuration
-LDAP_SERVER   = "ldap.intelie.net"
-LDAP_USERNAME = "uid=auth,ou=People,dc=intelie,dc=net"
-LDAP_PASSWORD = "auth"
+LDAP_SERVER_URI = "ldap.intelie.net:389"
+LDAP_USERNAME   = "uid=auth,ou=People,dc=intelie,dc=net"
+LDAP_PASSWORD   = "auth"
 
 # LDAP search configuration
 LDAP_BASE_DN             = "ou=People,dc=intelie,dc=net"
