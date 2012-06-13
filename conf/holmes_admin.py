@@ -1,1 +1,1 @@
-holmes_admin.sample.py
+holmes_admin.walmart.py

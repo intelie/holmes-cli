@@ -65,16 +65,18 @@ def handle_insert_users_from_ldap_option():
         print e
         sys.exit(-1)
     try:
-        ldap_result_id = l.search(holmes_admin.LDAP_BASE_DN, holmes_admin.LDAP_SEARCH_SCOPE, holmes_admin.LDAP_SEARCH_FILTER, holmes_admin.LDAP_RETRIEVE_ATTRIBUTES)
         result_set = []
-        while 1:
-            result_type, result_data = l.result(ldap_result_id, 0)
-            if (result_data == []):
-                break
-            else:
-                if result_type == ldap.RES_SEARCH_ENTRY:
-                    #print result_data
-                    result_set.append(result_data)
+        for search_filter in holmes_admin.LDAP_SEARCH_FILTERS:
+            ldap_result_id = l.search(holmes_admin.LDAP_BASE_DN, holmes_admin.LDAP_SEARCH_SCOPE, search_filter, holmes_admin.LDAP_RETRIEVE_ATTRIBUTES)
+            
+            while 1:
+                result_type, result_data = l.result(ldap_result_id, 0)
+                if (result_data == []):
+                    break
+                else:
+                    if result_type == ldap.RES_SEARCH_ENTRY:
+                        #print result_data
+                        result_set.append(result_data)
     except ldap.LDAPError, e:
        print e
        sys.exit(-1)
