@@ -4,18 +4,75 @@
 import sys
 from lib import options
 
+#Prints program usage with all possible arguments
+def printUsage():
+    print '\n\nUSAGE: ./holmes-admin [insert|remove|get] [streams|entity-types]'
+    print '                                     OR'
+    print '       ./holmes-admin [insert|remove|get] users <from_file|from_ldap|from_ldap_paged>\n\n'
+
+
+
+#Main
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print 'Usage: ./holmes-admin [insert|remove|get] [streams|entity-types|users] <options>'
-	print 'OPTIONS:'
-	print '   [users] <from_file|from_ldap>'
-	sys.exit(0)
+
+    #No arguments? Print usage
+    if len(sys.argv) == 1:
+        printUsage()
+        sys.exit(-1)
+
+    #Checking number of arguments
+    elif len(sys.argv) not in (3,4):
+        print 'Invalid number of arguments'
+        printUsage()
+        sys.exit(-1)
+
+    #First use case
     elif len(sys.argv) == 3:
-	do_evaluate_option = options.options[sys.argv[1]][sys.argv[2]]
+        #Checking if first argument is a valid option
+        if (sys.argv[1] in options.options.keys()):
+            #Checking if second argument is a valid option
+            if (sys.argv[2] in options.options[sys.argv[1]].keys()):
+                #It is, executing desired operation
+    	        do_evaluate_option = options.options[sys.argv[1]][sys.argv[2]]
+            else:
+                #2nd argument invalid, exiting
+                print "Invalid second argument: %s" % sys.argv[2]
+                printUsage()
+                sys.exit(-1)
+        else:
+            #1st argument invalid, exiting
+            print "Invalid fist argument: %s" % sys.argv[1]
+            printUsage()
+            sys.exit(-1)
+
+    #Second use case
     elif len(sys.argv) == 4:
-	do_evaluate_option = options.options[sys.argv[1]][sys.argv[2]][sys.argv[3]]
-    else:
-	print 'Invalid number of arguments'
-	sys.exit(-1)
+        #Checking if first argument is a valid option
+        if (sys.argv[1] in options.options.keys()):
+            #Checking if second argument is a valid option
+            if (sys.argv[2] in options.options[sys.argv[1]].keys()):
+                #Checking if third argument is a valid option
+                if (sys.argv[3] in options.options[sys.argv[1]][sys.argv[2]].keys()):
+                    #It is, executing desired operation
+    	            do_evaluate_option = options.options[sys.argv[1]][sys.argv[2]][sys.argv[3]]
+                else:
+                    #3rd argument invalid exiting
+                    print "Invalid third argument: %s" % sys.argv[3]
+                    printUsage()
+                    sys.exit(-1)
+            else:
+                #2nd argument invalid, exiting
+                print "Invalid second argument: %s" % sys.argv[2]
+                printUsage()
+                sys.exit(-1)
+        else:
+            #1st argument invalid, exiting
+            print "Invalid fist argument: %s" % sys.argv[1]
+            printUsage()
+            sys.exit(-1)
+
+    #Executing desired use case
     do_evaluate_option()
+
+    #Exiting
     sys.exit(0)

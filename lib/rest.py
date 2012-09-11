@@ -10,15 +10,15 @@ except Exception, e:
     print e
     sys.exit(-1)
 
-import holmes_admin
+import holmes_admin_conf
 
 def login_holmes():
     """returns session cookie from Holmes."""
 
-    params = urllib.urlencode({'j_password' : holmes_admin.HOLMES_PASSWORD, 'j_username' : holmes_admin.HOLMES_USERNAME})
+    params = urllib.urlencode({'j_password' : holmes_admin_conf.HOLMES_PASSWORD, 'j_username' : holmes_admin_conf.HOLMES_USERNAME})
     headers = {'Content-type' : 'application/x-www-form-urlencoded'}
     try:
-        conn = httplib.HTTPConnection(holmes_admin.HOLMES_URL)
+        conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
         conn.request("POST", "/j_spring_security_check", params, headers)
         response = conn.getresponse()
         cookie = response.getheader('set-cookie')
@@ -35,7 +35,7 @@ def assembly_stream_data(stream, properties):
 def insert_stream(conf, cookie):
     stream = conf.__name__.split('.')[1]
     properties = conf.PROPERTIES
-    conn = httplib.HTTPConnection(holmes_admin.HOLMES_URL)
+    conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
     data = assembly_stream_data(stream, properties)
     params = urllib.urlencode({'data' : data})
     headers = {"Content-type" : 'application/x-www-form-urlencoded', 'Cookie' : cookie}
@@ -48,7 +48,7 @@ def insert_stream(conf, cookie):
     conn.close()
 
 def get_streams(cookie):
-    conn = httplib.HTTPConnection(holmes_admin.HOLMES_URL)
+    conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
     headers = {"Content-type" : 'application/x-www-form-urlencoded', 'Cookie' : cookie}
     print 'Getting streams...'
     conn.request("GET", "/rest/stream", None, headers)
@@ -68,7 +68,7 @@ def get_streams(cookie):
     return to_return
 
 def insert_user(data, cookie):
-    conn = httplib.HTTPConnection(holmes_admin.HOLMES_URL)
+    conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
     params = urllib.urlencode({'data' : data})
     headers = {"Content-type" : 'application/x-www-form-urlencoded', 'Cookie' : cookie}
 
@@ -87,7 +87,7 @@ def insert_entity_type(data, cookie):
     data['streamsBinding'] = map(lambda x: {"id": "null",
                                             "streamId": streams[x]},
                                  data['streamsBinding'])
-    conn = httplib.HTTPConnection(holmes_admin.HOLMES_URL)
+    conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
     headers = {"Content-type": 'application/x-www-form-urlencoded', 'Cookie' : cookie}
     params = urllib.urlencode({'data': data})
     print 'Inserting event type: %s' % data['name']

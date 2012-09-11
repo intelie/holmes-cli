@@ -1,1 +1,0 @@
-holmes_admin.walmart.py
