@@ -67,6 +67,31 @@ def get_streams(cookie):
     conn.close()
     return to_return
 
+def insert_node(data, cookie):
+    conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
+    params = urllib.urlencode({'data' : data})
+    headers = {"Content-type" : 'application/x-www-form-urlencoded', 'Cookie' : cookie}
+
+    print 'Inserting node: %s ' % data['name']
+    conn.request("PUT", "/rest/node", params, headers)
+    response = conn.getresponse()
+    print "Response: HTTP %s %s" % (response.status, response.reason)
+
+    conn.close()
+    
+def insert_node_entity(entityId, nodeId, cookie):
+    conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
+    params = urllib.urlencode({'entityId' : entityId})
+    headers = {"Content-type" : 'application/x-www-form-urlencoded', 'Cookie' : cookie}
+    resource = "/rest/node/%s/entities" % nodeId
+    
+    print 'Inserting entities %s on node %s' % (entityId, nodeId)
+    conn.request("POST", resource, params, headers)
+    response = conn.getresponse()
+    print "Response: HTTP %s %s" % (response.status, response.reason)
+
+    conn.close()
+
 def insert_user(data, cookie):
     conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
     params = urllib.urlencode({'data' : data})

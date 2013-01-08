@@ -19,8 +19,17 @@ import rest
 import streams
 import entity_types
 import users
+import nodes
+import node_entities
 import holmes_admin_conf
 
+
+def handle_remove_node_entities_option():
+    print 'Remove node entities option yet not implemented.'
+    
+def handle_remove_nodes_option():
+    print 'Remove nodes option yet not implemented.'
+    
 def handle_remove_users_option():
     print 'Remove users option yet not implemented.'
 
@@ -30,6 +39,12 @@ def handle_remove_entity_types_option():
 def handle_remove_streams_option():
     print 'Remove streams option yet not implemented.'
 
+def handle_get_node_entities_option():
+    print 'Get node entities option yet not implemented.'
+
+def handle_get_nodes_option():
+    print 'Get nodes option yet not implemented.'
+    
 def handle_get_users_option():
     print 'Get users option yet not implemented.'
 
@@ -40,6 +55,16 @@ def handle_get_streams_option():
     cookie = rest.login_holmes()
     rest.get_streams(cookie)
 
+def handle_insert_node_entities_option():
+    cookie = rest.login_holmes()
+    for data in node_entities.DATA:
+        rest.insert_node_entity(data['entityId'], data['nodeId'], cookie)
+
+def handle_insert_nodes_option():
+    cookie = rest.login_holmes()
+    for data in nodes.DATA:
+        rest.insert_node(data, cookie)
+       
 def handle_insert_entity_type_option():
     cookie = rest.login_holmes()
     for data in entity_types.DATA:
@@ -53,7 +78,7 @@ def handle_insert_streams_option():
         exec('from %s import %s' % (stream_dir, stream))
         exec('stream_conf = %s' % stream)
         rest.insert_stream(stream_conf, cookie)
-
+       
 def handle_insert_users_from_file_option():
     cookie = rest.login_holmes()
     for data in users.DATA:
@@ -168,19 +193,25 @@ insert_users_options = {
 insert_options = {
     'streams': handle_insert_streams_option,
     'entity-types': handle_insert_entity_type_option,
-    'users': insert_users_options
+    'users': insert_users_options,
+    'nodes': handle_insert_nodes_option,
+    'node-entities': handle_insert_node_entities_option,
 }
 
 get_options = {
     'streams': handle_get_streams_option,
     'entity-types': handle_get_entity_types_option,
-    'users': handle_get_users_option
+    'users': handle_get_users_option,
+    'nodes': handle_get_nodes_option,
+    'node-entities': handle_get_node_entities_option,
 }
 
 remove_options = {
     'streams': handle_remove_streams_option,
     'entity-types': handle_remove_entity_types_option,
-    'users': handle_remove_users_option
+    'users': handle_remove_users_option,
+    'nodes': handle_remove_nodes_option,
+    'node-entities': handle_remove_node_entities_option
 }
 
 
