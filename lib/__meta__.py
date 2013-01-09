@@ -10,7 +10,7 @@ try:
         'BASE_PATH' : BASE_PATH,
         'LIB_PATH' : os.path.join(BASE_PATH, "lib"),
         'CONF_PATH' : os.path.join(BASE_PATH, "conf"),
-        'INPUT_DATA_PATH' : os.path.join(BASE_PATH, "input-data"),}
+        'INPUT_DATA_PATH' : os.path.join(BASE_PATH, "input_data"),}
 except Exception, e:
     print e
 

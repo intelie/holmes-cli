@@ -1,9 +1,7 @@
 #!/usr/bin/env python 
 #-*- coding:utf-8 -*- 
 
-import traceback
-import urllib 
-import httplib 
+import traceback 
 import sys
 import ldap
 from ldap.controls import SimplePagedResultsControl
@@ -19,10 +17,13 @@ import rest
 import streams
 import entity_types
 import users
+import perspectives
 import nodes
 import node_entities
 import holmes_admin_conf
 
+def handle_remove_perspectives_option():
+    print 'Remove perspectives option yet not implemented.'
 
 def handle_remove_node_entities_option():
     print 'Remove node entities option yet not implemented.'
@@ -50,10 +51,19 @@ def handle_get_users_option():
 
 def handle_get_entity_types_option():
     print 'Get entity-types option yet not implemented.'
+    
+def handle_get_perspectives_option():
+    cookie = rest.login_holmes()
+    rest.get_perspectives(cookie)
 
 def handle_get_streams_option():
     cookie = rest.login_holmes()
     rest.get_streams(cookie)
+    
+def handle_insert_perspectives_option():
+    cookie = rest.login_holmes()
+    for data in perspectives.DATA:
+        rest.insert_perspective(data, cookie)    
 
 def handle_insert_node_entities_option():
     cookie = rest.login_holmes()
@@ -82,7 +92,7 @@ def handle_insert_streams_option():
 def handle_insert_users_from_file_option():
     cookie = rest.login_holmes()
     for data in users.DATA:
-       rest.insert_user(data, cookie)
+        rest.insert_user(data, cookie)
 
 def handle_insert_users_from_ldap_option():
     try:
@@ -106,8 +116,8 @@ def handle_insert_users_from_ldap_option():
                         #print result_data
                         result_set.append(result_data)
     except ldap.LDAPError, e:
-       print e
-       sys.exit(-1)
+        print e
+        sys.exit(-1)
     cookie = rest.login_holmes()
     for result in result_set:
         name = result[0][1]['name'][0]
@@ -116,7 +126,7 @@ def handle_insert_users_from_ldap_option():
             data = {"username":username, "name":name, "email": username + "@" + holmes_admin_conf.EMAIL_DOMAIN, "xmpp_user":""}
         else:
             data = {"username":username, "name":name, "email": "", "xmpp_user":""}
-	    
+            
         print data
         rest.insert_user(data, cookie)
 
@@ -191,6 +201,7 @@ insert_users_options = {
 }
 
 insert_options = {
+    'perspectives': handle_insert_perspectives_option,                  
     'streams': handle_insert_streams_option,
     'entity-types': handle_insert_entity_type_option,
     'users': insert_users_options,
@@ -199,6 +210,7 @@ insert_options = {
 }
 
 get_options = {
+    'perspectives': handle_get_perspectives_option,
     'streams': handle_get_streams_option,
     'entity-types': handle_get_entity_types_option,
     'users': handle_get_users_option,
@@ -207,6 +219,7 @@ get_options = {
 }
 
 remove_options = {
+    'perspectives': handle_remove_perspectives_option,                  
     'streams': handle_remove_streams_option,
     'entity-types': handle_remove_entity_types_option,
     'users': handle_remove_users_option,

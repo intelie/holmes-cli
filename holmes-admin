@@ -6,7 +6,7 @@ from lib import options
 
 #Prints program usage with all possible arguments
 def printUsage():
-    print 'USAGE: ./holmes-admin [insert|remove|get] [streams|entity-types|nodes|node-entities]'
+    print 'USAGE: ./holmes-admin [insert|remove|get] [perspectives|streams|entity-types|nodes|node-entities]'
     print '                                     OR'
     print '       ./holmes-admin [insert|remove|get] users <from_file|from_ldap|from_ldap_paged>'
 

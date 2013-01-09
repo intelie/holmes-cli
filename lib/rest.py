@@ -44,8 +44,45 @@ def insert_stream(conf, cookie):
     conn.request("PUT", "/rest/stream", params, headers)
     response = conn.getresponse()
     print "Response: HTTP %s %s" % (response.status, response.reason)
+    if response.status != 200:
+        print response.read()
 
     conn.close()
+    
+def insert_perspective(data, cookie):
+    conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
+    params = str(data)
+    headers = {"Content-type" : 'application/x-www-form-urlencoded', 'Cookie' : cookie}
+
+    print 'Inserting perspective: %s ' % data['name']
+    conn.request("POST", "/rest/perspective", params, headers)
+    response = conn.getresponse()
+    print "Response: HTTP %s %s" % (response.status, response.reason)
+    if response.status != 200:
+        print response.read()
+
+    conn.close()
+
+def get_perspectives(cookie):
+    conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
+    headers = {"Content-type" : 'application/x-www-form-urlencoded', 'Cookie' : cookie}
+    print 'Getting perspectives...'
+    conn.request("GET", "/rest/perspective", None, headers)
+    response = conn.getresponse()
+    print "Response: HTTP %s %s" % (response.status, response.reason)
+    to_return = []
+    if response.status == 200:
+        responseRead = response.read()
+        responseObj = json.loads(responseRead)
+        print 'Total perspectives: %s' % responseObj['totalCount']
+        if len(responseObj['items']) > 0:
+            print 'Perspectives list:',
+        for item in responseObj['items']:
+            perspective = '"' + item['name'] + '"' 
+            print perspective,
+        to_return = responseObj['items']
+    conn.close()
+    return to_return
 
 def get_streams(cookie):
     conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
@@ -76,6 +113,8 @@ def insert_node(data, cookie):
     conn.request("PUT", "/rest/node", params, headers)
     response = conn.getresponse()
     print "Response: HTTP %s %s" % (response.status, response.reason)
+    if response.status != 200:
+        print response.read()
 
     conn.close()
     
@@ -89,6 +128,8 @@ def insert_node_entity(entityId, nodeId, cookie):
     conn.request("POST", resource, params, headers)
     response = conn.getresponse()
     print "Response: HTTP %s %s" % (response.status, response.reason)
+    if response.status != 200:
+        print response.read()
 
     conn.close()
 
@@ -101,6 +142,8 @@ def insert_user(data, cookie):
     conn.request("PUT", "/rest/user", params, headers)
     response = conn.getresponse()
     print "Response: HTTP %s %s" % (response.status, response.reason)
+    if response.status != 200:
+        print response.read()
 
     conn.close()
 
@@ -108,7 +151,7 @@ def insert_entity_type(data, cookie):
 #    streams = {stream['name']: stream['id'] for stream in get_streams(cookie)}
     streams = {}
     for stream in get_streams(cookie):
-	streams.update({stream['name']: stream['id']})
+        streams.update({stream['name']: stream['id']})
     data['streamsBinding'] = map(lambda x: {"id": "null",
                                             "streamId": streams[x]},
                                  data['streamsBinding'])
@@ -119,5 +162,7 @@ def insert_entity_type(data, cookie):
     conn.request("PUT", "/rest/entitytype", params, headers)
     response = conn.getresponse()
     print "Response: HTTP %s %s" % (response.status, response.reason)
+    if response.status != 200:
+        print response.read()
 
     conn.close()
