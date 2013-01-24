@@ -3,6 +3,8 @@
 
 import traceback 
 import sys
+import json
+from sets import Set
 import ldap
 from ldap.controls import SimplePagedResultsControl
 
@@ -42,9 +44,24 @@ def handle_remove_streams_option():
 
 def handle_get_node_entities_option():
     print 'Get node entities option yet not implemented.'
-
+     
 def handle_get_nodes_option():
-    print 'Get nodes option yet not implemented.'
+    cookie = rest.login_holmes()
+    rest.get_all_nodes(cookie, verbose=True)
+           
+def handle_get_nodes_from_file_option():
+    cookie = rest.login_holmes()
+    parentNodeIdSet = Set()
+    for data in nodes.DATA:
+        if data['parentNodeId'] not in parentNodeIdSet:
+            parentNodeIdSet.add(data['parentNodeId'])
+            nodeList = rest.get_nodes_from_parent(data['perspectiveId'], data['parentNodeId'], 'root', cookie)
+            print 'Total nodes: %s' % len(nodeList)
+            if len(nodeList) > 0:
+                print 'Nodes list:',
+            for item in nodeList:
+                print '"%s"' % item['text'], 
+            print
     
 def handle_get_users_option():
     print 'Get users option yet not implemented.'
@@ -54,7 +71,13 @@ def handle_get_entity_types_option():
     
 def handle_get_perspectives_option():
     cookie = rest.login_holmes()
-    rest.get_perspectives(cookie)
+    perspectivesList = rest.get_perspectives(cookie)
+    print 'Total perspectives: %s' % len(perspectivesList)
+    if len(perspectivesList) > 0:
+        print 'Perspectives list:',
+        for item in perspectivesList:
+            perspective = '"' + item['name'] + '"' 
+            print perspective,
 
 def handle_get_streams_option():
     cookie = rest.login_holmes()
@@ -73,7 +96,8 @@ def handle_insert_node_entities_option():
 def handle_insert_nodes_option():
     cookie = rest.login_holmes()
     for data in nodes.DATA:
-        rest.insert_node(data, cookie)
+        print 'Inserting node: %s ' % data['name']
+        rest.insert_node(json.dumps(data), cookie)
        
 def handle_insert_entity_type_option():
     cookie = rest.login_holmes()

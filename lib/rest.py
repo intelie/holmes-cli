@@ -1,3 +1,6 @@
+#!/usr/bin/env python 
+#-*- coding:UTF-8 -*-
+
 import urllib
 import httplib
 import sys
@@ -16,7 +19,7 @@ def login_holmes():
     """returns session cookie from Holmes."""
 
     params = urllib.urlencode({'j_password' : holmes_admin_conf.HOLMES_PASSWORD, 'j_username' : holmes_admin_conf.HOLMES_USERNAME})
-    headers = {'Content-type' : 'application/x-www-form-urlencoded'}
+    headers = {"Content-type" : 'application/x-www-form-urlencoded'}
     try:
         conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
         conn.request("POST", "/j_spring_security_check", params, headers)
@@ -66,23 +69,55 @@ def insert_perspective(data, cookie):
 def get_perspectives(cookie):
     conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
     headers = {"Content-type" : 'application/x-www-form-urlencoded', 'Cookie' : cookie}
-    print 'Getting perspectives...'
+    #print 'Getting perspectives...'
     conn.request("GET", "/rest/perspective", None, headers)
     response = conn.getresponse()
-    print "Response: HTTP %s %s" % (response.status, response.reason)
+    #print "Response: HTTP %s %s" % (response.status, response.reason)
     to_return = []
     if response.status == 200:
         responseRead = response.read()
         responseObj = json.loads(responseRead)
-        print 'Total perspectives: %s' % responseObj['totalCount']
-        if len(responseObj['items']) > 0:
-            print 'Perspectives list:',
-        for item in responseObj['items']:
-            perspective = '"' + item['name'] + '"' 
-            print perspective,
         to_return = responseObj['items']
     conn.close()
     return to_return
+
+def get_nodes_from_parent(perspectiveId, parentNodeId, nodeType, cookie):
+    conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
+    headers = {"Content-type" : 'application/x-www-form-urlencoded', 'Cookie' : cookie}
+    #print 'Getting nodes from parent %s...' % parentNodeId
+    resource = "/rest/perspective/%s/tree?type=%s&id=%s" % (perspectiveId, nodeType, parentNodeId)
+    conn.request("GET", resource, None, headers)
+    response = conn.getresponse()
+    #print "Response: HTTP %s %s" % (response.status, response.reason)
+    to_return = []
+    if response.status == 200:
+        responseRead = response.read()
+        responseObj = json.loads(responseRead)
+        to_return = responseObj
+    conn.close()
+    return to_return
+
+def get_inner_nodes(globalNodeList, perspectiveId, parentNodeId, cookie):
+        innerNodeList = get_nodes_from_parent(perspectiveId, parentNodeId, 'node', cookie)
+        globalNodeList += innerNodeList
+        for innerNode in innerNodeList:
+            print '"%s"' % innerNode['text'],
+            get_inner_nodes(globalNodeList, perspectiveId, innerNode['id'], cookie)
+
+def get_all_nodes(cookie, verbose=False):
+    perspectiveList = get_perspectives(cookie)
+    globalNodeList = []
+    for perspective in perspectiveList:
+        if verbose: print 'Perspective "%s":' % perspective['name'], 
+        rootNodeList = get_nodes_from_parent(perspective['id'], perspective['rootnode_id'], 'root', cookie)
+        globalNodeList += rootNodeList
+        for rootNode in rootNodeList:
+            if verbose: print '"%s"' % rootNode['text'],
+            get_inner_nodes(globalNodeList, perspective['id'], rootNode['id'], cookie)
+        print
+    if verbose: print "\nTotal perspectives: %s" % len(perspectiveList)
+    if verbose: print "Total nodes:        %s" % len(globalNodeList)
+    return globalNodeList 
 
 def get_streams(cookie):
     conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
@@ -108,15 +143,16 @@ def insert_node(data, cookie):
     conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
     params = urllib.urlencode({'data' : data})
     headers = {"Content-type" : 'application/x-www-form-urlencoded', 'Cookie' : cookie}
-
-    print 'Inserting node: %s ' % data['name']
     conn.request("PUT", "/rest/node", params, headers)
     response = conn.getresponse()
     print "Response: HTTP %s %s" % (response.status, response.reason)
-    if response.status != 200:
-        print response.read()
-
+    responseRead = response.read()
+    responseObj = json.loads(responseRead)
     conn.close()
+    if response.status != 200:
+        print responseRead
+    else:
+        return responseObj['data']  
     
 def insert_node_entity(entityId, nodeId, cookie):
     conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
