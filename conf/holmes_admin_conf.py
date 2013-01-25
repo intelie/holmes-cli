@@ -1,8 +1,7 @@
 import ldap
 
 # IEM access configuration
-#HOLMES_URL="192.168.56.101:8080"
-HOLMES_URL="cittavld570.globoi.com:80"
+HOLMES_URL="192.168.56.101:8080"
 HOLMES_USERNAME="admin"
 HOLMES_PASSWORD="admin"
 
