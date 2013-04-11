@@ -82,6 +82,10 @@ def handle_get_perspectives_option():
 def handle_get_streams_option():
     cookie = rest.login_holmes()
     rest.get_streams(cookie)
+
+def handle_get_stats_option():
+    cookie = rest.login_holmes()
+    rest.get_stats(cookie)
     
 def handle_insert_perspectives_option():
     cookie = rest.login_holmes()
@@ -236,6 +240,7 @@ insert_options = {
 get_options = {
     'perspectives': handle_get_perspectives_option,
     'streams': handle_get_streams_option,
+    'stats': handle_get_stats_option, 
     'entity-types': handle_get_entity_types_option,
     'users': handle_get_users_option,
     'nodes': handle_get_nodes_option,

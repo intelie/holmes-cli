@@ -139,6 +139,22 @@ def get_streams(cookie):
     conn.close()
     return to_return
 
+def get_stats(cookie):
+    conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
+    headers = {"Content-type" : 'application/json', 'Cookie' : cookie}
+    print 'Getting stats...'
+    conn.request("GET", "/rest/admin/running-statements", None, headers)
+    response = conn.getresponse()
+    print "Response: HTTP %s %s" % (response.status, response.reason)
+    to_return = []
+    if response.status == 200:
+        responseRead = response.read()
+        responseObj = json.loads(responseRead)
+	for item in responseObj:
+            print item['text']
+    conn.close()
+    return to_return
+
 def insert_node(data, cookie):
     conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
     params = urllib.urlencode({'data' : data})
