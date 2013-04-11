@@ -150,7 +150,7 @@ def get_stats(cookie):
     if response.status == 200:
         responseRead = response.read()
         responseObj = json.loads(responseRead)
-	for item in responseObj:
+        for item in responseObj:
             print item['text']
     conn.close()
     return to_return
