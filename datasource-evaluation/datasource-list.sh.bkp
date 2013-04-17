@@ -1,0 +1,19 @@
+#!/bin/bash
+#Busca os dados através do Holmes-Admin para verificar se existem Datasources duplicados;
+/home/monitoracao.holmes/holmes-cli/./holmes-admin get stats > /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats
+/bin/sleep 30
+#Gera dois arquivos com base no resultado obtido através do Holmes;
+/bin/cat /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats |/bin/grep "insert into" |/bin/awk '{print$3}' |/bin/sort > /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.new && /bin/cat /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats |/bin/grep "insert into" |/bin/awk '{print$3}' |/bin/sort |/usr/bin/uniq > /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.uniq
+#Avalia as diferenças entre os arquivos;
+/usr/bin/diff /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.new /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.uniq > /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.final
+#/usr/bin/diff /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.new /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.uniq >> /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.final #Linha de diff para forçar o funcionamento do script criando o arquivo stats.final manualmente com conteúdo aleatório
+if [ -s /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.final ]
+then
+	/bin/cp /home/monitoracao.holmes/holmes-cli/datasource-evaluation/mail	/home/monitoracao.holmes/holmes-cli/datasource-evaluation/msg
+	/bin/cat /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.final >> /home/monitoracao.holmes/holmes-cli/datasource-evaluation/msg
+	/usr/sbin/sendmail -t < /home/monitoracao.holmes/holmes-cli/datasource-evaluation/msg
+	/bin/rm -f /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.new /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.uniq /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.final /home/monitoracao.holmes/holmes-cli/datasource-evaluation/msg
+else
+	/bin/rm -f /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.new /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.uniq /home/monitoracao.holmes/holmes-cli/datasource-evaluation/stats.final
+fi 
+echo fim
