@@ -7,6 +7,7 @@ import json
 from sets import Set
 import ldap
 from ldap.controls import SimplePagedResultsControl
+from collections import defaultdict
 
 try:
     from lib import __meta__
@@ -133,7 +134,7 @@ def handle_insert_users_from_ldap_option():
     try:
         result_set = []
         for search_filter in holmes_admin_conf.LDAP_SEARCH_FILTERS:
-            ldap_result_id = l.ch(holmes_admin_conf.LDAP_BASE_DN, holmes_admin_conf.LDAP_SEARCH_SCOPE, search_filter, holmes_admin_conf.LDAP_RETRIEVE_ATTRIBUTES)
+            ldap_result_id = l.search(holmes_admin_conf.LDAP_BASE_DN, holmes_admin_conf.LDAP_SEARCH_SCOPE, search_filter, holmes_admin_conf.LDAP_RETRIEVE_ATTRIBUTES)
             
             while 1:
                 result_type, result_data = l.result(ldap_result_id, 0)
@@ -141,22 +142,25 @@ def handle_insert_users_from_ldap_option():
                     break
                 else:
                     if result_type == ldap.RES_SEARCH_ENTRY:
-                        #print result_data
+                        print result_data
                         result_set.append(result_data)
     except ldap.LDAPError, e:
         print e
         sys.exit(-1)
     cookie = rest.login_holmes()
+    groups = defaultdict(lambda: [])
     for result in result_set:
-        name = result[0][1]['name'][0]
-        username = result[0][1]['sAMAccountName'][0]
-        if holmes_admin_conf.EMAIL_DOMAIN:
-            data = {"username":username, "name":name, "email": username + "@" + holmes_admin_conf.EMAIL_DOMAIN, "xmpp_user":""}
-        else:
-            data = {"username":username, "name":name, "email": "", "xmpp_user":""}
-            
-        print data
-        rest.insert_user(data, cookie)
+        data = holmes_admin_conf.LDAP_USER_FACTORY(lambda s: result[0][1][s][0])
+        inserted = rest.insert_user(data, cookie)
+        print inserted
+        if inserted and 'data' in inserted:
+            for group in holmes_admin_conf.LDAP_USER_GROUPS(lambda s: result[0][1][s]):
+                groups[group].append(inserted['data']['id'])
+                
+    for name, users in groups.items():
+        rest.insert_group({'name':name, 'users': ','.join(str(v) for v in users), 'allPerspectivesAllowed':False}, cookie)
+        
+    print data, groups
 
 #Import users from ldap using paged queries strategy
 def handle_insert_users_from_ldap_paged_option():
@@ -187,8 +191,9 @@ def handle_insert_users_from_ldap_paged_option():
                 #Recovering valid user entries
                 for rdata_element in rdata:
                     dn, result = rdata_element
-                    if (('name' in result.keys()) and ('sAMAccountName' in result.keys())):
-                        result_list.append(result)
+                    #if (('name' in result.keys()) and ('sAMAccountName' in result.keys())):
+                    result_list.append(result)       
+
 
                 pctrls = [c for c in serverctrls if c.controlType == ldap.LDAP_CONTROL_PAGE_OID]
             
@@ -211,16 +216,19 @@ def handle_insert_users_from_ldap_paged_option():
     #Debug
     print "\n\nTotal users: " + str(len(result_list)) + '\n\n'
     cookie = rest.login_holmes()
+
+    groups = defaultdict(lambda: [])
     for result in result_list:
-        name = result['name'][0]
-        username = result['sAMAccountName'][0]
-        if holmes_admin_conf.EMAIL_DOMAIN:
-            data = {"username":username, "name":name, "email": username + "@" + holmes_admin_conf.EMAIL_DOMAIN, "xmpp_user":""}
-        else:
-            data = {"username":username, "name":name, "email": "", "xmpp_user":""}
-	    
-        print data
-        rest.insert_user(data, cookie)
+        data = holmes_admin_conf.LDAP_USER_FACTORY(lambda s: result[s][0])
+        inserted = rest.insert_user(data, cookie)
+        print inserted
+        if inserted and 'data' in inserted:
+            for group in holmes_admin_conf.LDAP_USER_GROUPS(lambda s: result[s]):
+                groups[group].append(inserted['data']['id'])
+                
+    for name, users in groups.items():
+        rest.insert_group({'name':name, 'users': ','.join(str(v) for v in users), 'allPerspectivesAllowed':False}, cookie)
+
 
 insert_users_options = {
     'from_file': handle_insert_users_from_file_option,

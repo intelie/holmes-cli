@@ -194,6 +194,24 @@ def insert_user(data, cookie):
     conn.request("PUT", "/rest/user", params, headers)
     response = conn.getresponse()
     print "Response: HTTP %s %s" % (response.status, response.reason)
+    
+    answer = None
+    if response.status != 200:
+        print response.read()
+    else:       
+        answer = json.loads(response.read())
+    conn.close()
+    return answer
+    
+def insert_group(data, cookie):
+    conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
+    params = urllib.urlencode({'data' : data})
+    headers = {"Content-type" : 'application/x-www-form-urlencoded', 'Cookie' : cookie}
+
+    print 'Inserting group: %s ' % data['name']
+    conn.request("PUT", "/rest/usergroup", params, headers)
+    response = conn.getresponse()
+    print "Response: HTTP %s %s" % (response.status, response.reason)
     if response.status != 200:
         print response.read()
 
