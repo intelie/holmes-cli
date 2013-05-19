@@ -70,7 +70,7 @@ def get_perspectives(cookie):
     conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
     headers = {"Content-type" : 'application/x-www-form-urlencoded', 'Cookie' : cookie}
     #print 'Getting perspectives...'
-    conn.request("GET", "/rest/perspective", None, headers)
+    conn.request("GET", "/rest/topology", None, headers)
     response = conn.getresponse()
     #print "Response: HTTP %s %s" % (response.status, response.reason)
     to_return = []
