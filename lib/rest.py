@@ -58,7 +58,7 @@ def insert_perspective(data, cookie):
     headers = {"Content-type" : 'application/x-www-form-urlencoded', 'Cookie' : cookie}
 
     print 'Inserting perspective: %s ' % data['name']
-    conn.request("POST", "/rest/perspective", params, headers)
+    conn.request("POST", "/rest/topology", params, headers)
     response = conn.getresponse()
     print "Response: HTTP %s %s" % (response.status, response.reason)
     if response.status != 200:
@@ -85,7 +85,7 @@ def get_nodes_from_parent(perspectiveId, parentNodeId, nodeType, cookie):
     conn = httplib.HTTPConnection(holmes_admin_conf.HOLMES_URL)
     headers = {"Content-type" : 'application/x-www-form-urlencoded', 'Cookie' : cookie}
     #print 'Getting nodes from parent %s...' % parentNodeId
-    resource = "/rest/perspective/%s/tree?type=%s&id=%s" % (perspectiveId, nodeType, parentNodeId)
+    resource = "/rest/topology/%s/tree?type=%s&id=%s" % (perspectiveId, nodeType, parentNodeId)
     conn.request("GET", resource, None, headers)
     response = conn.getresponse()
     #print "Response: HTTP %s %s" % (response.status, response.reason)

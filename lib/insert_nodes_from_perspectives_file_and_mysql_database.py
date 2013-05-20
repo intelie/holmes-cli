@@ -21,7 +21,7 @@ def insert_node_subtree(nodeObj, nodeIdDatabase, cookie):
     responseObj = rest.insert_node(json.dumps(nodeObj), cookie)    
     nodeIdRegistered =  responseObj['id']
     queryChild = "-e select name, node_id from node where parent_node_id = %s" % nodeIdDatabase
-    childNodeFile = subprocess.Popen(["mysql", '-B', '-uroot', '-Dglbsce', queryChild], stdout=subprocess.PIPE).stdout
+    childNodeFile = subprocess.Popen(["mysql", '-B', '-uroot', '-Ddidata', queryChild], stdout=subprocess.PIPE).stdout
     childNodeFile.readline() #ignoring first line (column names)
     childNodeLine = childNodeFile.readline()
     while childNodeLine:
@@ -44,10 +44,11 @@ cookie = rest.login_holmes()
 registeredPerspectives = rest.get_perspectives(cookie)
 
 for x in inputPerspectives:
+    print x
     for y in registeredPerspectives: 
         if x['name'] == y['name']:
             cmd = "-e select name, node_id from node where parent_node_id = (select root_node_id from perspective where name = '%s')" % y['name']
-            nodes = subprocess.Popen(["mysql", '-B', '-uroot', '-Dglbsce', cmd], stdout=subprocess.PIPE).stdout
+            nodes = subprocess.Popen(["mysql", '-B', '-uroot', '-Ddidata', cmd], stdout=subprocess.PIPE).stdout
             nodes.readline() #ignoring first line (column name)
             node = nodes.readline()
             while node:
